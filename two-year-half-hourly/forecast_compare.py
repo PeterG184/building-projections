@@ -48,6 +48,7 @@ svm_scaler = joblib.load('two-year-half-hourly/svm/svm_scaler.joblib')
 lstm_model = create_and_load_lstm_model('two-year-half-hourly/lstm/lstm_model.h5', input_shape=(48, 1))
 lstm_scaler = joblib.load('two-year-half-hourly/lstm/lstm_scaler.joblib')
 
+# XXX Date to predict goes here:
 prediction_start = pd.Timestamp('2022-08-19 00:00:00') 
 
 if prediction_start not in data.index:
