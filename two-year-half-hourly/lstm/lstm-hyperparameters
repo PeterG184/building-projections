@@ -11,7 +11,7 @@ import joblib
 import optuna
 
 # Data loading
-data = pd.read_csv('data-processed-timestamps.csv', header=None, names=['date', 'time', 'energy_usage'])
+data = pd.read_csv('two-year-half-hourly/data-processed-timestamps.csv', header=None, names=['date', 'time', 'energy_usage'])
 data['timestamp'] = pd.to_datetime(data['date'] + ' ' + data['time'], format='%d/%m/%y %H:%M')
 data.set_index('timestamp', inplace=True)
 data.drop(['date', 'time'], axis=1, inplace=True)
@@ -45,7 +45,7 @@ def objective(trial):
     dense_units = trial.suggest_int('dense_units', 8, 64)
     learning_rate = trial.suggest_loguniform('learning_rate', 1e-5, 1e-2)
     batch_size = trial.suggest_categorical('batch_size', [16, 32, 64, 128])
-
+    
     # Build the LSTM model with the suggested hyperparameters
     model = Sequential([
         LSTM(lstm_units_1, activation='relu', return_sequences=True, input_shape=(seq_length, 1)),
@@ -53,18 +53,18 @@ def objective(trial):
         Dense(dense_units, activation='relu'),
         Dense(1)
     ])
-
+    
     model.compile(optimizer=Adam(learning_rate=learning_rate), loss='mse')
-
+    
     # Train the model
     history = model.fit(
-        X_train_scaled, y_train_scaled,
+        X_train_scaled, y_train_scaled, 
         epochs=50,  # You might want to reduce this for faster tuning
-        batch_size=batch_size,
-        validation_split=0.1,
-        verbose=1
+        batch_size=batch_size, 
+        validation_split=0.1, 
+        verbose=0
     )
-
+    
     # Evaluate the model
     val_loss = history.history['val_loss'][-1]  # Get the last validation loss
     return val_loss
@@ -88,10 +88,10 @@ final_model = Sequential([
 final_model.compile(optimizer=Adam(learning_rate=best_params['learning_rate']), loss='mse')
 
 history = final_model.fit(
-    X_train_scaled, y_train_scaled,
+    X_train_scaled, y_train_scaled, 
     epochs=100,  # You can increase this for the final model
-    batch_size=best_params['batch_size'],
-    validation_split=0.1,
+    batch_size=best_params['batch_size'], 
+    validation_split=0.1, 
     verbose=1
 )
 
@@ -107,30 +107,15 @@ print(f"Mean Squared Error: {mse}")
 print(f"R-squared Score: {r2}")
 
 # Save the final model and scaler
-final_model.save('lstm_model_tuned.h5')
-joblib.dump(scaler, 'lstm_scaler_tuned.joblib')
+final_model.save('two-year-half-hourly/lstm/lstm_model_tuned.h5')
+joblib.dump(scaler, 'two-year-half-hourly/lstm/lstm_scaler_tuned.joblib')
 
 # Plot the optimization history
 optuna.visualization.plot_optimization_history(study)
-plt.savefig('optimization_history.png')
+plt.savefig('two-year-half-hourly/lstm/optimization_history.png')
 plt.show()
 
 # Plot the parameter importances
 optuna.visualization.plot_param_importances(study)
-plt.savefig('param_importances.png')
+plt.savefig('two-year-half-hourly/lstm/param_importances.png')
 plt.show()
-
-# Plot predictions vs actual
-plt.figure(figsize=(12, 6))
-plt.plot(y_test, label='Actual')
-plt.plot(y_pred, label='Predicted')
-plt.title('LSTM Model: Actual vs Predicted Energy Usage')
-plt.xlabel('Time Steps')
-plt.ylabel('Energy Usage')
-plt.legend()
-plt.tight_layout()
-plt.savefig('two-year-half-hourly/lstm/lstm_predictions.png')
-plt.show()
-
-final_model.save('two-year-half-hourly/lstm/hyperparam-tuned-lstm_model.h5')
-joblib.dump(scaler, 'two-year-half-hourly/lstm/lstm_scaler.joblib')

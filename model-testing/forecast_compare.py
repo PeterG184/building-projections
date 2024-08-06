@@ -24,10 +24,13 @@ def load_and_prepare_data(file_path):
     return data
 
 def create_and_load_lstm_model(weights_path, input_shape):
+    seq_length = 48  # 24 hours of half-hourly data means 48 data points to consider
     model = Sequential([
-        LSTM(50, activation='relu', input_shape=input_shape),
-        Dense(1)
-    ])
+    LSTM(100, activation='relu', return_sequences=True, input_shape=(seq_length, 1)),
+    LSTM(50, activation='relu'),
+    Dense(20, activation='relu'),
+    Dense(1)
+])
     model.compile(optimizer=Adam(learning_rate=0.001), loss='mse')
     model.load_weights(weights_path)
     return model
@@ -42,11 +45,11 @@ def predict_lstm(model, scaler, sequence):
     return scaler.inverse_transform(prediction_scaled)[0, 0]
 
 # Load data models and scalers
-data = load_and_prepare_data('two-year-half-hourly/data-processed-timestamps.csv')
-svm_model = joblib.load('two-year-half-hourly/svm/svm_model.joblib')
-svm_scaler = joblib.load('two-year-half-hourly/svm/svm_scaler.joblib')
-lstm_model = create_and_load_lstm_model('two-year-half-hourly/lstm/lstm_model.h5', input_shape=(48, 1))
-lstm_scaler = joblib.load('two-year-half-hourly/lstm/lstm_scaler.joblib')
+data = load_and_prepare_data('model-testing/data-processed-timestamps.csv')
+svm_model = joblib.load('model-testing/svm_model.joblib')
+svm_scaler = joblib.load('model-testing/svm_scaler.joblib')
+lstm_model = create_and_load_lstm_model('model-testing/lstm_model.h5', input_shape=(48, 1))
+lstm_scaler = joblib.load('model-testing/lstm_scaler.joblib')
 
 # XXX Date to predict goes here:
 prediction_start = pd.Timestamp('2022-08-19 00:00:00') 
