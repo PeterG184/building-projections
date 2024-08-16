@@ -45,11 +45,11 @@ def predict_lstm(model, scaler, sequence):
     return scaler.inverse_transform(prediction_scaled)[0, 0]
 
 # Load data models and scalers
-data = load_and_prepare_data('model-testing/data-processed-timestamps.csv')
+data = load_and_prepare_data('data-processed-timestamps.csv')
 svm_model = joblib.load('model-testing/svm_model.joblib')
 svm_scaler = joblib.load('model-testing/svm_scaler.joblib')
-lstm_model = create_and_load_lstm_model('model-testing/lstm_model.h5', input_shape=(48, 1))
-lstm_scaler = joblib.load('model-testing/lstm_scaler.joblib')
+lstm_model = create_and_load_lstm_model('model-testing/lstm_model_tuned.h5', input_shape=(48, 1))
+lstm_scaler = joblib.load('model-testing/lstm_scaler_tuned.joblib')
 
 # XXX Date to predict goes here:
 prediction_start = pd.Timestamp('2022-08-19 00:00:00') 
