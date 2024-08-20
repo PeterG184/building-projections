@@ -39,9 +39,10 @@ y_test_scaled = scaler.transform(y_test.reshape(-1, 1))
 # Define the model with the specified parameters
 def create_model(lstm_units_1=128, lstm_units_2=64, lstm_units_3=32, dense_units=32, learning_rate=0.001):
     model = Sequential([
-        LSTM(lstm_units_1, activation='relu', return_sequences=True, input_shape=(seq_length, 1)),
-        LSTM(lstm_units_2, activation='relu', return_sequences=True),
-        LSTM(lstm_units_3, activation='relu'),
+        LSTM(lstm_units_1, return_sequences=True, input_shape=(seq_length, 1)),
+        LSTM(lstm_units_2, return_sequences=True),
+        LSTM(lstm_units_3, return_sequences=True),
+        LSTM(24),
         Dense(dense_units, activation='relu'),
         Dense(1)
     ])
@@ -53,7 +54,7 @@ model = create_model()
 
 history = model.fit(
     X_train_scaled, y_train_scaled,
-    epochs=50,
+    epochs=1000,
     batch_size=64,
     validation_split=0.1,
     verbose=1
@@ -79,8 +80,8 @@ plt.xlabel('Time Steps')
 plt.ylabel('Energy Usage')
 plt.legend()
 plt.tight_layout()
-plt.savefig('two-year-half-hourly/lstm/three-layer-lstm_predictions.png')
+plt.savefig('two-year-half-hourly/lstm/four-layer-lstm_predictions-norelu1000.png')
 plt.show()
 
-model.save('two-year-half-hourly/lstm/three-layer-lstm_model.h5')
-joblib.dump(scaler, 'two-year-half-hourly/lstm/three-layer-lstm_scaler.joblib')
+model.save('two-year-half-hourly/lstm/four-layer-lstm_model-norelu1000.h5')
+joblib.dump(scaler, 'two-year-half-hourly/lstm/four-layer-lstm_scaler-norelu1000.joblib')

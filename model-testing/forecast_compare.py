@@ -26,8 +26,10 @@ def load_and_prepare_data(file_path):
 def create_and_load_lstm_model(weights_path, input_shape):
     seq_length = 48  # 24 hours of half-hourly data means 48 data points to consider
     model = Sequential([
-    LSTM(128, activation='relu', return_sequences=True, input_shape=(seq_length, 1)),
-    LSTM(64, activation='relu'),
+    LSTM(128, return_sequences=True, input_shape=(seq_length, 1)),
+    LSTM(64, return_sequences=True),
+    LSTM(32, return_sequences=True),
+    LSTM(24),
     Dense(32, activation='relu'),
     Dense(1)
 ])
@@ -48,8 +50,8 @@ def predict_lstm(model, scaler, sequence):
 data = load_and_prepare_data('data-processed-timestamps.csv')
 svm_model = joblib.load('model-testing/svm_model.joblib')
 svm_scaler = joblib.load('model-testing/svm_scaler.joblib')
-lstm_model = create_and_load_lstm_model('model-testing/lstm_model_tuned.h5', input_shape=(48, 1))
-lstm_scaler = joblib.load('model-testing/lstm_scaler_tuned.joblib')
+lstm_model = create_and_load_lstm_model('model-testing/four-layer-lstm_model.h5', input_shape=(48, 1))
+lstm_scaler = joblib.load('model-testing/four-layer-lstm_scaler.joblib')
 
 # XXX Date to predict goes here:
 prediction_start = pd.Timestamp('2022-08-19 00:00:00') 
