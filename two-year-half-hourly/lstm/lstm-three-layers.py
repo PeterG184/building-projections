@@ -70,10 +70,6 @@ r2 = 1 - (np.sum((y_test - y_pred.flatten())**2) / np.sum((y_test - np.mean(y_te
 print(f"Mean Squared Error: {mse}")
 print(f"R-squared Score: {r2}")
 
-# Save the final model and scaler
-model.save('lstm_model_tuned.h5')
-joblib.dump(scaler, 'lstm_scaler_tuned.joblib')
-
 # Plot predictions vs actual
 plt.figure(figsize=(12, 6))
 plt.plot(y_test, label='Actual')
@@ -83,8 +79,8 @@ plt.xlabel('Time Steps')
 plt.ylabel('Energy Usage')
 plt.legend()
 plt.tight_layout()
-plt.savefig('two-year-half-hourly/lstm/lstm_predictions.png')
+plt.savefig('two-year-half-hourly/lstm/three-layer-lstm_predictions.png')
 plt.show()
 
-model.save('two-year-half-hourly/lstm/hyperparam-tuned-lstm_model.h5')
-joblib.dump(scaler, 'two-year-half-hourly/lstm/lstm_scaler.joblib')
+model.save('two-year-half-hourly/lstm/three-layer-lstm_model.h5')
+joblib.dump(scaler, 'two-year-half-hourly/lstm/three-layer-lstm_scaler.joblib')
