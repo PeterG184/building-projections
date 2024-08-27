@@ -26,9 +26,11 @@ def load_and_prepare_data(file_path):
 def create_and_load_lstm_model(weights_path, input_shape):
     seq_length = 48  # 24 hours of half-hourly data means 48 data points to consider
     model = Sequential([
-    LSTM(100, activation='relu', return_sequences=True, input_shape=(seq_length, 1)),
-    LSTM(50, activation='relu'),
-    Dense(20, activation='relu'),
+    LSTM(128, return_sequences=True, input_shape=(seq_length, 1)),
+    LSTM(64, return_sequences=True),
+    LSTM(32, return_sequences=True),
+    LSTM(24),
+    Dense(32, activation='relu'),
     Dense(1)
 ])
     model.compile(optimizer=Adam(learning_rate=0.001), loss='mse')
@@ -45,11 +47,11 @@ def predict_lstm(model, scaler, sequence):
     return scaler.inverse_transform(prediction_scaled)[0, 0]
 
 # Load data models and scalers
-data = load_and_prepare_data('model-testing/data-processed-timestamps.csv')
+data = load_and_prepare_data('data-processed-timestamps.csv')
 svm_model = joblib.load('model-testing/svm_model.joblib')
 svm_scaler = joblib.load('model-testing/svm_scaler.joblib')
-lstm_model = create_and_load_lstm_model('model-testing/lstm_model.h5', input_shape=(48, 1))
-lstm_scaler = joblib.load('model-testing/lstm_scaler.joblib')
+lstm_model = create_and_load_lstm_model('model-testing/four-layer-lstm_model.h5', input_shape=(48, 1))
+lstm_scaler = joblib.load('model-testing/four-layer-lstm_scaler.joblib')
 
 # XXX Date to predict goes here:
 prediction_start = pd.Timestamp('2022-08-19 00:00:00') 
@@ -72,25 +74,43 @@ for _ in range(48):
     lstm_sequence = np.roll(lstm_sequence, -1)
     lstm_sequence[-1] = next_pred
 
-# Create a DataFrame with all the data
-results = pd.DataFrame({
-    'Actual': actual_data['energy_usage'],
-    'SVM Prediction': svm_predictions,
-    'LSTM Prediction': lstm_predictions
-}, index=actual_data.index)
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.dates import DateFormatter
+
+# Convert predictions to numpy arrays if they aren't already
+actual_values = actual_data['energy_usage'].values
+svm_pred_values = np.array(svm_predictions).flatten()
+lstm_pred_values = np.array(lstm_predictions).flatten()
+
+# Ensure all arrays have the same length
+min_length = min(len(actual_values), len(svm_pred_values), len(lstm_pred_values))
+actual_values = actual_values[:min_length]
+svm_pred_values = svm_pred_values[:min_length]
+lstm_pred_values = lstm_pred_values[:min_length]
+
+# Get the datetime index as a numpy array
+time_index = actual_data.index.to_numpy()[:min_length]
 
 # Plot the results
 plt.figure(figsize=(12, 6))
-plt.plot(results.index, results['Actual'], label='Actual', marker='o')
-plt.plot(results.index, results['SVM Prediction'], label='SVM Prediction', marker='s')
-plt.plot(results.index, results['LSTM Prediction'], label='LSTM Prediction', marker='^')
+plt.plot(time_index, actual_values, label='Actual', marker='o')
+plt.plot(time_index, svm_pred_values, label='SVM Prediction', marker='s')
+plt.plot(time_index, lstm_pred_values, label='LSTM Prediction', marker='^')
+
 plt.title('Energy Usage: Actual vs Predictions')
 plt.xlabel('Time')
 plt.ylabel('Energy Usage')
 plt.legend()
-plt.xticks(rotation=45)
+
+# Format x-axis labels
+plt.gca().xaxis.set_major_formatter(DateFormatter('%Y-%m-%d %H:%M'))
+plt.gcf().autofmt_xdate()  # Rotate and align the tick labels
+
 plt.tight_layout()
 plt.savefig('energy_predictions_comparison.png')
 plt.show()
 
-print(results)
+# Print results
+for i in range(min_length):
+    print(f"Time: {time_index[i]}, Actual: {actual_values[i]}, SVM: {svm_pred_values[i]}, LSTM: {lstm_pred_values[i]}")

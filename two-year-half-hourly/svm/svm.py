@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import joblib
 
 # Data preprocessing
-data = pd.read_csv('two-year-half-hourly/data-processed-timestamps.csv', header=None, names=['date', 'time', 'energy_usage'])
+data = pd.read_csv('data-processed-timestamps.csv', header=None, names=['date', 'time', 'energy_usage'])
 data['timestamp'] = pd.to_datetime(data['date'] + ' ' + data['time'], format='%d/%m/%y %H:%M')
 data.set_index('timestamp', inplace=True)
 data.drop(['date', 'time'], axis=1, inplace=True)
@@ -19,13 +19,13 @@ data['day_of_week'] = data.index.dayofweek
 data['month'] = data.index.month
 data['day_of_year'] = data.index.dayofyear
 data['is_weekend'] = data.index.dayofweek.isin([5, 6]).astype(int)
-data['lag_1'] = data['energy_usage'].shift(1)
+# data['lag_1'] = data['energy_usage'].shift(1)
 data['lag_48'] = data['energy_usage'].shift(48)
 
 # Drop rows with NaN values created by lag features
 data.dropna(inplace=True)
 
-X = data[['hour', 'day_of_week', 'month', 'day_of_year', 'is_weekend', 'lag_1', 'lag_48']]
+X = data[['hour', 'day_of_week', 'month', 'day_of_year', 'is_weekend', 'lag_48']]
 y = data['energy_usage']
 
 # Split data into training and testing sets and scale
@@ -49,16 +49,16 @@ print(f"Mean Squared Error: {mse}")
 print(f"R-squared Score: {r2}")
 
 # Plot predictions vs actual
-plt.figure(figsize=(12, 6))
-plt.plot(y_test.index, y_test.values, label='Actual')
-plt.plot(y_test.index, y_pred, label='Predicted')
-plt.title('SVM Model: Actual vs Predicted Energy Usage')
-plt.xlabel('Timestamp')
-plt.ylabel('Energy Usage')
-plt.legend()
-plt.tight_layout()
-plt.savefig('two-year-half-hourly/svm/svm_predictions.png')
-plt.show()
+# plt.figure(figsize=(12, 6))
+# plt.plot(y_test.index, y_test.values, label='Actual')
+# plt.plot(y_test.index, y_pred, label='Predicted')
+# plt.title('SVM Model: Actual vs Predicted Energy Usage')
+# plt.xlabel('Timestamp')
+# plt.ylabel('Energy Usage')
+# plt.legend()
+# plt.tight_layout()
+# plt.savefig('two-year-half-hourly/svm/svm_predictions-no1hr.png')
+# plt.show()
 
-joblib.dump(svm_model, 'two-year-half-hourly/svm/svm_model.joblib')
-joblib.dump(scaler, 'two-year-half-hourly/svm/svm_scaler.joblib')
+joblib.dump(svm_model, 'two-year-half-hourly/svm/svm_model-no1hr.joblib')
+joblib.dump(scaler, 'two-year-half-hourly/svm/svm_scaler-no1hr.joblib')
