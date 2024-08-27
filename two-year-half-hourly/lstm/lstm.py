@@ -59,7 +59,7 @@ def objective(trial):
     # Train the model
     history = model.fit(
         X_train_scaled, y_train_scaled,
-        epochs=50,  # You might want to reduce this for faster tuning
+        epochs=25,  # You might want to reduce this for faster tuning
         batch_size=batch_size,
         validation_split=0.1,
         verbose=1
@@ -89,7 +89,7 @@ final_model.compile(optimizer=Adam(learning_rate=best_params['learning_rate']), 
 
 history = final_model.fit(
     X_train_scaled, y_train_scaled,
-    epochs=100,  # You can increase this for the final model
+    epochs=1000, 
     batch_size=best_params['batch_size'],
     validation_split=0.1,
     verbose=1
@@ -133,4 +133,4 @@ plt.savefig('two-year-half-hourly/lstm/lstm_predictions.png')
 plt.show()
 
 final_model.save('two-year-half-hourly/lstm/hyperparam-tuned-lstm_model.h5')
-joblib.dump(scaler, 'two-year-half-hourly/lstm/lstm_scaler.joblib')
+joblib.dump(scaler, 'two-year-half-hourly/lstm/hyperparam-lstm_scaler.joblib')
